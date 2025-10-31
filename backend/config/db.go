@@ -13,7 +13,7 @@ import (
 
 
 func startConnection()(*mongo.Client, error) {
-	var conn = LoadEnv()
+	var conn DBConnection = LoadEnv()
 	var ctx,  cancel = context.WithTimeout(context.Background(),10*time.Second)
 	defer cancel()
 	client, error := mongo.Connect(ctx,options.Client().ApplyURI(conn.URI))
