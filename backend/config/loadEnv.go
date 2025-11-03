@@ -11,6 +11,7 @@ import (
 type DBConnection struct { 
 	URI  string 
 	Port string 
+	Database string
 }
 
 
@@ -24,6 +25,7 @@ func LoadEnv() DBConnection {
 	conn := DBConnection{
 		URI:  os.Getenv("MONGO_URI"),
 		Port: os.Getenv("PORT"),
+		Database:os.Getenv("DATABASE"),
 	}
 
 	return conn

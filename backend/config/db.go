@@ -12,7 +12,7 @@ import (
 )
 
 
-func startConnection()(*mongo.Client, error) {
+func StartConnection()(*mongo.Database, error) {
 	var conn DBConnection = LoadEnv()
 	var ctx,  cancel = context.WithTimeout(context.Background(),10*time.Second)
 	defer cancel()
@@ -28,5 +28,6 @@ func startConnection()(*mongo.Client, error) {
 	}
 
 	fmt.Println("Successfully connected and pinged MongoDB!")
-	return client, nil
+	db :=client.Database(conn.Database)
+	return db, nil
 }

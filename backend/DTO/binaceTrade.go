@@ -14,6 +14,7 @@ type ResponseData struct {
     Data       []CoinPriceResponse     `json:"data"`
 
 }
+
 type BinanceTicker struct {
     // ข้อมูล Event และ Symbol
     EventType string `json:"e"` // e: Event type ("24hrTicker")

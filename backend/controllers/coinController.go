@@ -12,10 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
-type CombinedStreamMessage struct {
-    Stream string `json:"stream"`
-    Data   dto.BinanceTicker `json:"data"` // 💡 รับ BinanceTicker Object เดี่ยว
-}
 
 var (
 
@@ -44,7 +40,7 @@ func RunWebSocketClient() {
             log.Println("Read Message failed:", err); break 
         }
 
-        var msg CombinedStreamMessage 
+        var msg dto.CombinedStreamMessage 
         
 
         if err := json.Unmarshal(message, &msg); err == nil {
