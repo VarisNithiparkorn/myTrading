@@ -1,7 +1,7 @@
 FROM golang:1.25
 WORKDIR /app
-COPY ../go.mod /app/
-COPY ../go.sum /app/
+COPY go.mod /app/
+COPY go.sum /app/
 RUN go mod dowload
 COPY . .
 CMD [ "/app/backend.exe" ]

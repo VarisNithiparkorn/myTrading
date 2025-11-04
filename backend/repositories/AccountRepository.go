@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/config"
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/entities"
+	"github.com/VarisNithiparkorn/cryptoGraph/config"
+	"github.com/VarisNithiparkorn/cryptoGraph/entities"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 func intitial() *mongo.Collection{

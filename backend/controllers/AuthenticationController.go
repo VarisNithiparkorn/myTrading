@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 
-	dto "github.com/VarisNithiparkorn/cryptoGraph/backend/DTO"
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/services"
+	dto "github.com/VarisNithiparkorn/cryptoGraph/DTO"
+	"github.com/VarisNithiparkorn/cryptoGraph/services"
 	"github.com/gin-gonic/gin"
 )
 

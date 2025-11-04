@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/controllers"
+	"github.com/VarisNithiparkorn/cryptoGraph/controllers"
 	"github.com/gin-gonic/gin"
 )
 

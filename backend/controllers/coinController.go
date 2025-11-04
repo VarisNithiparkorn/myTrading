@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	dto "github.com/VarisNithiparkorn/cryptoGraph/backend/DTO"
+	dto "github.com/VarisNithiparkorn/cryptoGraph/DTO"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

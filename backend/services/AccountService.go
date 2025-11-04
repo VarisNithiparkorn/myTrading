@@ -1,10 +1,10 @@
 package services
 
 import (
-	dto "github.com/VarisNithiparkorn/cryptoGraph/backend/DTO"
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/entities"
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/repositories"
-	"github.com/VarisNithiparkorn/cryptoGraph/backend/utils"
+	dto "github.com/VarisNithiparkorn/cryptoGraph/DTO"
+	"github.com/VarisNithiparkorn/cryptoGraph/entities"
+	"github.com/VarisNithiparkorn/cryptoGraph/repositories"
+	"github.com/VarisNithiparkorn/cryptoGraph/utils"
 )
 
 func CreateAccount(accountDTO dto.Account) {
