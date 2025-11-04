@@ -12,6 +12,10 @@ type DBConnection struct {
 	URI  string 
 	Port string 
 	Database string
+	MailUsername string
+	MailPassword string
+	SmtpHost string
+	SmtpPort string
 }
 
 
@@ -26,6 +30,10 @@ func LoadEnv() DBConnection {
 		URI:  os.Getenv("MONGO_URI"),
 		Port: os.Getenv("PORT"),
 		Database:os.Getenv("DATABASE"),
+		MailUsername:os.Getenv("MAIL_USERNAME"),
+		MailPassword: os.Getenv("MAIL_PASSWORD"),
+		SmtpHost: os.Getenv("SMTP_HOST"),
+		SmtpPort: os.Getenv("SMTP_PORT"),
 	}
 
 	return conn

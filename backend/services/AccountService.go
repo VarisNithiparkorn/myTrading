@@ -15,4 +15,6 @@ func CreateAccount(accountDTO dto.Account) {
 		IsActive:false,
 	}
 	repositories.InsertOneAccount(account)
+
+	utils.SendHtmlMail([]string{account.Username},"register","template/emailVerificationForm.html",dto.Response{Username: account.Username, Url: "http://localhost:3000/verify-email"})
 }

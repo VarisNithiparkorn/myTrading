@@ -182,7 +182,7 @@ export default function Register() {
                 "username":email,
                 "password":password
             }
-            const statusCode:Number =await register(newAccount)
+            const statusCode:Number|undefined =await register(newAccount)
         }else if(currentForm === "signIn"){
 
         }

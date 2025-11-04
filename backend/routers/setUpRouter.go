@@ -33,5 +33,6 @@ func SetUpRouter() *gin.Engine {
 	apiV1 := router.Group("/api/v1")
 	CreateCoinRouter(apiV1)
 	AuthenticationRouter(apiV1)
+	ImageRouter(apiV1)
 	return router
 }
