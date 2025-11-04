@@ -1,7 +1,12 @@
+FROM golang:1.25 as builder
+WORKDIR /app
+COPY . .
+RUN go mod download
+RUN go build -o backend .
+
+
 FROM golang:1.25
 WORKDIR /app
-COPY go.mod /app/
-COPY go.sum /app/
-RUN go mod dowload
-COPY . .
-CMD [ "/app/backend.exe" ]
+COPY --from=builder /app/backend /app/backend
+EXPOSE 5050
+CMD [ "/app/backend" ]
