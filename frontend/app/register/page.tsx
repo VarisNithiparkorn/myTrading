@@ -2,9 +2,11 @@
 import Header from "../Components/Header"
 import Image from "next/image"
 import HomeEgg from "../Components/images/egg_home.png"
-import Caution from "../Components/images/caution.png"
 import RegisterEgg from "../Components/images/register_egg.png"
 import { useState } from "react"
+import { Account } from "../utils/interface"
+import { register } from "../utils/fetchUtils"
+import validator from 'validator';
 export default function Register() {
     const [email,setEmail]= useState<string>('')
     const [password,setPassword] = useState<string>('')
@@ -17,9 +19,16 @@ export default function Register() {
     const [isValidNumber,setIsValidNumber] = useState<boolean>(false)
     const [isValidSymbol,setIsValidSymbol] = useState<boolean>(false)
     const [showPwdErr,setShowPwdErr] = useState<boolean>(false)
+    const [showConfirmPwdErr,setShowConfirmPwdErr] = useState<boolean>(false)
+    const [ConfirmPwdErrMsg,setConfirmPwdErrMsg] = useState<string>("")
+    const [showEmailErr,setShowEmailErr] = useState<boolean>(false)
+    const [emailErrMsg,setEmailErrMsg] = useState<string>("")
     const [isClicked,setIsClicked] = useState<boolean>(false)
     const [pwdErrMsg,setPwdErrMsg] = useState<string>("")
     const [currentForm , setCurrentForm] = useState<string>("signIn")
+
+    const errorMsgStyle:string = "m-1 text-xs text-red-600"
+
     const setDropDown=(section:string) =>{
     const services : string[] = ["ตลาดซื้อ-ขาย","ซื้อ-ขาย คริปโตเคอร์เรนซี","ซื้อ Bitcoin","ซื้อ Ethereum","ซื้อ Solana"]
     const aboutUs : string[] = ["รู้จักเรา","ภารกิจของเรา", "ข้อตกลงผู้ใช้บริการ","คำสั่งซื้อขายที่ไม่เหมาะสม","นโยบายการแจ้งเบาะแสและข้อร้องเรียน"]
@@ -40,6 +49,7 @@ export default function Register() {
             return <div className={dropdownLayout}>{others.map((o,i)=><a key={i} href="" className={textDropdown}>{o}</a>)}</div>
         }
     }
+
     const clearForm = ():void=>{
         setIsClicked(false)
         setEmail('')
@@ -48,29 +58,72 @@ export default function Register() {
     }
     const setTypingStatus =(e: React.FocusEvent<HTMLInputElement>):void=>{
         const id = e.target.id
+        
         if(id === "email"){
+            if(email.length !== 0){
+                validateInput("email",email)
+            }
+            if(showEmailErr){
+                setShowErrMsg("email",false,"")
+            }
             setEmailFocusStatus(!emailFocus)
         }else if(id === "password"){
+            if(currentForm === "register" && !isClicked){
+                setIsClicked(true)
+            }
+            if(password.length !== 0){
+                validateInput("password",password)
+            }
+            if(showPwdErr){
+                setShowErrMsg("password",false,"")
+            }
             setPwdFocus(!pwdFocus)
         }else if(id === "confirmPassword"){
+            if(showConfirmPwdErr){
+                setShowErrMsg("confirmPassword",false,"")
+            }
             setConfirmPwdFocus(!confirmPwdFocus)
         }
     }
     const handleFormChange = (formType:"signIn"|"register"):void=>{
         setCurrentForm(formType)
         setIsClicked(false)
+        setShowErrMsg("email",false,"")
+        setShowErrMsg("password",false,"")
+        setShowErrMsg("confirmPassword",false,"")
         clearForm()
     }
-    const setClick=()=>{
-        setIsClicked(true)
+    const setShowErrMsg = (field:"email"|"password"|"confirmPassword",status:boolean, message:string)=>{
+        if(field === "email"){
+            setShowEmailErr(status)
+            setEmailErrMsg(message)
+        }
+        if(field === "password"){
+            setPwdErrMsg(message)
+            setShowPwdErr(status)
+        }
+        if(field === "confirmPassword"){
+            setShowConfirmPwdErr(status)
+            setConfirmPwdErrMsg(message)
+        }
     }
-    const validateInput=(inputType:"email"|"password"|"confirmPassword",input:string)=>{
-        if(inputType ==="email"){
-
+    const validateInput=(inputType:"email"|"password"|"confirmPassword",input:string,show=true):boolean=>{
+       if(inputType ==="email"){
+            const valid:Boolean= validator.isEmail(input)
+            if(input.length === 0){
+                setShowErrMsg(inputType,true,"โปรดกรอกอีเมล")
+                return false
+            }
+            if(!valid){
+                setShowErrMsg(inputType,true,"รูปแบบอีเมลไม่ถูกต้อง โปรดกรอกใหม่อีกครั้ง")
+                return false
+            }
+            setShowErrMsg("email",false,"")
+            return true
         }else if(inputType === "password"){
             if(input.length === 0){
-                setShowPwdErr(false)
-                return
+                setShowErrMsg(inputType,false,"")
+                return false
             }
             const passwordCharacterCase = new RegExp(
             `(?=.*[a-z])` + 
@@ -82,16 +135,28 @@ export default function Register() {
             setIsValidCharacter(passwordCharacterCase.test(input))
             setIsValidNumber(passwordNumberCase.test(input))
             setIsValidSymbol(passwordSymbolCase.test(input))
-            if(isValidLength && isValidCharacter&& isValidNumber&& isValidSymbol){
-                setPwdErrMsg("")
-                setShowPwdErr(false)
-            }else{
-                setPwdErrMsg("โปรดตั้งรหัสผ่านตามเงื่อนไขด้านล่างเพื่อความปลอดภัย")
-                setShowPwdErr(true)
-            }
-        }else if(inputType === "confirmPassword"){
 
+            if(isValidLength && isValidCharacter&& isValidNumber&& isValidSymbol){
+                setShowErrMsg(inputType,false,"")
+                return true
+            }else if(show){
+                setShowErrMsg(inputType,true,"โปรดตั้งรหัสผ่านตามเงื่อนไขด้านล่างเพื่อความปลอดภัย")
+                return false
+            }
+
+        }else if(inputType === "confirmPassword"){
+            const valid :Boolean = password === input
+            if(input.length === 0){
+                setShowErrMsg(inputType,true,"โปรดยืนยันรหัสผ่าน")
+            }
+            if(!valid){
+                setShowErrMsg(inputType,true,"รหัสผ่านไม่ตรงกัน โปรดกรอกใหม่อีกครั้ง")
+                return false
+            }
+            setShowErrMsg("confirmPassword",false,"")
+            return true
         }
+        return false
     }
     const intitialInput=(e:React.FocusEvent<HTMLInputElement>)=>{
         const value: string = e.target.value
@@ -99,15 +164,25 @@ export default function Register() {
         if(id === "email"){
             setEmail(value)
         }else if(id === "password"){
-            validateInput(id,value)
+            validateInput(id,value,false)
             setPassword(value)
         }else if(id ==="confirmPassword"){
             setConfirmPassword(value)
         }
     }
-    const sendAuthentication = ():void=>{
+    const sendAuthentication = async()=>{
         if(currentForm ==="register"){
-            
+            const validEmail:Boolean = validateInput("email",email)
+            const validPwd:Boolean = validateInput("password",password)
+            const validConPwd:Boolean = validateInput("confirmPassword",confirmPassword)
+            if(!validConPwd || !validEmail || !validPwd){
+                return
+            }
+            const newAccount:Account ={
+                "username":email,
+                "password":password
+            }
+            const statusCode:Number =await register(newAccount)
         }else if(currentForm === "signIn"){
 
         }
@@ -148,11 +223,12 @@ export default function Register() {
                             </input>
                             <img src={"/mailIcon/"+ (emailFocus  ? "mail_yellow.png":"mail.png")} className=" opacity-50 w-[15px] h-[15px] absolute bottom-[12px] left-3"></img>
                         </div>
+                        {showEmailErr ? <p className={errorMsgStyle}>{emailErrMsg}</p>:null}
                         <div className="max-[1025px]:w-full w-[80%] mt-2  relative">
                              <p className=" font-light text-gray-500 text-[14px]">
                                 รหัสผ่าน
                             </p>
-                            <input onClick={setClick} value={password} onInput={intitialInput}  onBlur={setTypingStatus} onFocus={setTypingStatus} id="password" type="password" placeholder={pwdFocus?"":"กรอกรหัสผ่าน"} className={`${showPwdErr ? "border-red-600" : "border-gray-400"} 
+                            <input value={password} onInput={intitialInput}  onBlur={setTypingStatus} onFocus={setTypingStatus} id="password" type="password" placeholder={pwdFocus?"":"กรอกรหัสผ่าน"} className={`${showPwdErr ? "border-red-600" : "border-gray-400"} 
                             hover:border-amber-400 
                              p-5 pl-9 text-[14px] rounded 
                             focus:border-amber-400 focus:outline-none focus:border-2
@@ -162,7 +238,7 @@ export default function Register() {
                             </input>
                             <img src={"/lock/" + (pwdFocus ? "lock_yellow.png": !pwdFocus && showPwdErr ? "padlock_red.png":"padlock.png") }className=" opacity-50 w-[15px] h-[15px] absolute bottom-[12px] left-3"></img>
                         </div>
-                        <p className="m-1 text-xs">
+                        <p className={errorMsgStyle}>
                             {password.length !== 0 ? pwdErrMsg:""}
                         </p>
                         { isClicked && currentForm === "register" ?
@@ -195,7 +271,11 @@ export default function Register() {
                             
                             </input>
                             <img src={"/lock/" + (confirmPwdFocus ? "lock_yellow.png":"padlock.png") }className=" opacity-50 w-[15px] h-[15px] absolute bottom-[12px] left-3"></img>
-                        </div>}
+                        </div>    
+                        }
+                        {
+                            currentForm === "register" && showConfirmPwdErr ? <p className={errorMsgStyle}>{ConfirmPwdErrMsg}</p>:null
+                        }
                         {currentForm === "signIn"?
                         <p className="max-[1025px]:w-full hover:cursor-pointer text-amber-400 w-[80%] text-right">
                             ลืมรหัสผ่าน?

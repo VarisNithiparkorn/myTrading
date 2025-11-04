@@ -1,9 +1,35 @@
 package routers
 
-import "github.com/gin-gonic/gin"
+import (
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
 
 func SetUpRouter() *gin.Engine {
 	router := gin.Default()
+	config := cors.Config{
+
+		AllowOrigins:     []string{"http://localhost:3000", "https://yourfrontend.com"},
+        
+
+
+
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+        
+
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"},
+        
+
+		ExposeHeaders:    []string{"Content-Length"},
+        
+
+		AllowCredentials: true,
+        
+		MaxAge:           12 * time.Hour,
+	}
+	router.Use(cors.New(config))
 	apiV1 := router.Group("/api/v1")
 	CreateCoinRouter(apiV1)
 	AuthenticationRouter(apiV1)
