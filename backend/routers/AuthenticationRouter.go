@@ -8,4 +8,5 @@ import (
 func AuthenticationRouter(rg *gin.RouterGroup) {
 	authRouter := rg.Group("/register")
 	authRouter.POST("",controllers.HandleRegister)
+	authRouter.GET("",controllers.HandleVerifyEmail)
 }

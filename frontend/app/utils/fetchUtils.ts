@@ -1,8 +1,7 @@
-import { json } from "stream/consumers"
 import { Account } from "./interface"
 
 const url:string = process.env.BACKEND_URL ?? "http://localhost:5050/"
-export const register = async(account:Account)=>{
+export const register = async(account:Account):Promise<number>=>{
     try{
     const res:Response = await fetch(url+"api/v1/register",{
         method:"POST",
@@ -10,6 +9,18 @@ export const register = async(account:Account)=>{
     })
     return res.status
     }catch(e){
-        console.log("register faile")
+        console.log("register fail")
     }
+    return 999 
+}
+export const verifyEmail = async(token:string):Promise<number>=>{
+    try{
+    const res:Response = await fetch(url+"api/v1/register?token="+token,{
+        method:"GET"
+    })
+    return res.status
+    }catch(e){
+        console.log("verifymail fail")
+    }
+    return 999
 }
