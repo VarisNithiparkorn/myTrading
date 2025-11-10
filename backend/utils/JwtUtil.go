@@ -8,11 +8,27 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
+type Mytoken interface{
+	getUsername() string
+}
 type EmailTokenClaims struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
+func (t *EmailTokenClaims) getUsername() string{
+	return t.getUsername()
+}
+type EmailTokenClaimsFields map[string]string
+
+type AccessToken struct{
+	Username string `json:"username"`
+	Role string `json:"role"`
+}
+func (t *AccessToken) getUsername() string{
+	return t.getUsername()
+}
+type AcceessTokenClaimsFields map[string]string
 var signKey *rsa.PrivateKey
 var verifyKey *rsa.PublicKey
 
@@ -28,25 +44,33 @@ func init() {
 	fmt.Println("RSA Private Key loaded successfully.")
 }
 
+func generateClaim(tokenType string){
+	if(tokenType == "accesstoken"){
 
+	}else if tokenType == "refreshtoken" {
+		
+	}else if tokenType == "emailtoken"{
+		claims := &EmailTokenClaims{
+			UserID:   userID,
+			Username: username,
+			RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			Issuer:    "Bitkai_Auth_Service",
+		},
+		
+		}
+	}
+}
 
-func GenerateAccessToken(userID, username string) (string, error) {
+func GenerateAccessToken(userID, username string, t time.Duration, tokenType string) (string, error) {
 	// Check if the key was loaded successfully
 	if signKey == nil {
 		return "", fmt.Errorf("RSA private key is not initialized")
 	}
 
-	expirationTime := time.Now().Add(time.Hour * 1)
+	expirationTime := time.Now().Add(t)
 
-	claims := &EmailTokenClaims{
-		UserID:   userID,
-		Username: username,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			Issuer:    "Bitkai_Auth_Service",
-		},
-	}
 
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)

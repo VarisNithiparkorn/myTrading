@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 
 	dto "github.com/VarisNithiparkorn/cryptoGraph/DTO"
 	"github.com/VarisNithiparkorn/cryptoGraph/entities"
