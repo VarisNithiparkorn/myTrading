@@ -176,6 +176,15 @@ export default function Register() {
             const validPwd:Boolean = validateInput("password",password)
             const validConPwd:Boolean = validateInput("confirmPassword",confirmPassword)
             if(!validConPwd || !validEmail || !validPwd){
+                console.log("invalid")
+                if(password.length === 0){
+                    setPwdErrMsg("โปรดใส่รหัสผ่าน")
+                    setShowPwdErr(true)
+                }
+                if(confirmPassword.length === 0){
+                    setConfirmPwdErrMsg("โปรดยืนยันรหัสผ่าน")
+                    setShowConfirmPwdErr(true)
+                }
                 return
             }
             const newAccount:Account ={
@@ -239,7 +248,7 @@ export default function Register() {
                             <img src={"/lock/" + (pwdFocus ? "lock_yellow.png": !pwdFocus && showPwdErr ? "padlock_red.png":"padlock.png") }className=" opacity-50 w-[15px] h-[15px] absolute bottom-[12px] left-3"></img>
                         </div>
                         <p className={errorMsgStyle}>
-                            {password.length !== 0 ? pwdErrMsg:""}
+                            {showPwdErr ? pwdErrMsg:""}
                         </p>
                         { isClicked && currentForm === "register" ?
                         <ul className=" p-3 bg-amber-100 w-[80%] mt-2">

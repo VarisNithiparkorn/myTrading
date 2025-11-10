@@ -13,7 +13,6 @@ import (
 
 func CreateAccount(accountDTO dto.Account) error {
 	existedAccount := repositories.FindAccountByUsername(accountDTO.Username)
-	log.Println("accouttttttttttttttt", existedAccount)
 	if existedAccount != nil {
 		err := errorsHandle.CreateConflictErr(409,"username already existed")
 		return err
