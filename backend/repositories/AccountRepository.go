@@ -45,7 +45,6 @@ func FindAccountByUsername(username string) *entities.Account{
 	if(err != nil){
 		return nil
 	}
-	log.Println("username"+ account.Username)
 	return &account
 }
 

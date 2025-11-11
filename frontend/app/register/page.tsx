@@ -5,9 +5,12 @@ import HomeEgg from "../Components/images/egg_home.png"
 import RegisterEgg from "../Components/images/register_egg.png"
 import { useState } from "react"
 import { Account } from "../utils/interface"
-import { register } from "../utils/fetchUtils"
+import { register,login } from "../utils/fetchUtils"
+import { useRouter } from "next/navigation"
 import validator from 'validator';
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 export default function Register() {
+    const router:AppRouterInstance =useRouter()
     const [email,setEmail]= useState<string>('')
     const [password,setPassword] = useState<string>('')
     const [confirmPassword, setConfirmPassword]= useState<string>('')
@@ -56,6 +59,8 @@ export default function Register() {
         setPassword('')
         setConfirmPassword('')
     }
+
+
     const setTypingStatus =(e: React.FocusEvent<HTMLInputElement>):void=>{
         const id = e.target.id
         
@@ -71,7 +76,7 @@ export default function Register() {
             if(currentForm === "register" && !isClicked){
                 setIsClicked(true)
             }
-            if(password.length !== 0){
+            if(password.length !== 0 && currentForm !== "signIn"){
                 validateInput("password",password)
             }
             if(showPwdErr){
@@ -85,6 +90,8 @@ export default function Register() {
             setConfirmPwdFocus(!confirmPwdFocus)
         }
     }
+
+
     const handleFormChange = (formType:"signIn"|"register"):void=>{
         setCurrentForm(formType)
         setIsClicked(false)
@@ -93,6 +100,8 @@ export default function Register() {
         setShowErrMsg("confirmPassword",false,"")
         clearForm()
     }
+
+
     const setShowErrMsg = (field:"email"|"password"|"confirmPassword",status:boolean, message:string)=>{
         if(field === "email"){
             setShowEmailErr(status)
@@ -107,6 +116,9 @@ export default function Register() {
             setConfirmPwdErrMsg(message)
         }
     }
+
+
+
     const validateInput=(inputType:"email"|"password"|"confirmPassword",input:string,show=true):boolean=>{
        if(inputType ==="email"){
             const valid:Boolean= validator.isEmail(input)
@@ -158,6 +170,8 @@ export default function Register() {
         }
         return false
     }
+
+
     const intitialInput=(e:React.FocusEvent<HTMLInputElement>)=>{
         const value: string = e.target.value
         const id: string = e.target.id
@@ -170,13 +184,14 @@ export default function Register() {
             setConfirmPassword(value)
         }
     }
+
+
     const sendAuthentication = async()=>{
         if(currentForm ==="register"){
             const validEmail:Boolean = validateInput("email",email)
             const validPwd:Boolean = validateInput("password",password)
             const validConPwd:Boolean = validateInput("confirmPassword",confirmPassword)
             if(!validConPwd || !validEmail || !validPwd){
-                console.log("invalid")
                 if(password.length === 0){
                     setPwdErrMsg("โปรดใส่รหัสผ่าน")
                     setShowPwdErr(true)
@@ -189,11 +204,29 @@ export default function Register() {
             }
             const newAccount:Account ={
                 "username":email,
-                "password":password
+                "password":password,
+                "role":"user"
             }
             const statusCode:Number|undefined =await register(newAccount)
         }else if(currentForm === "signIn"){
-
+            const validEmail:Boolean = validateInput("email",email)
+            if(!validEmail){
+                if(password.length === 0){
+                    setPwdErrMsg("โปรดใส่รหัสผ่าน")
+                    setShowPwdErr(true)
+                }
+                return
+            }
+            const newAccount:Account ={
+                "username":email,
+                "password":password,
+                "role":null
+            }
+            const res : object|number = await login(newAccount)
+            if (typeof res === "object") {
+                router.push("/dashboard") 
+            }
+            
         }
     }
     return(

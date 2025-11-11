@@ -10,6 +10,30 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+func Login(account *dto.Account) (t *string,e error){
+	existedAccount := repositories.FindAccountByUsername(account.Username)
+	if existedAccount == nil{
+		return nil,errorsHandle.CreateBadRequest(400,"account doesn't exist")
+	}
+	if !existedAccount.IsActive {
+		return nil,errorsHandle.CreateConflictErr(403,"email doesn't verify")
+	}
+	equal := utils.Compare(account.Password,existedAccount.Password)
+	if !equal {
+		return nil, errorsHandle.CreateBadRequest(400,"invalid email or password")
+	}
+	fields:=make(utils.AcceessClaimsFields)
+	fields["userId"] = existedAccount.ID.String()
+	fields["username"] = existedAccount.Username
+	fields["role"] = existedAccount.Role
+	token,err := utils.GenerateToken(fields,"accesstoken")
+	
+	if err!=nil {
+		return nil,err
+	}
+	return &token,nil
+}
+
 func CreateAccount(accountDTO dto.Account) error {
 	existedAccount := repositories.FindAccountByUsername(accountDTO.Username)
 	if existedAccount != nil {
@@ -27,7 +51,10 @@ func CreateAccount(accountDTO dto.Account) error {
         return errorsHandle.CreateInternalServerErr(500,"Error asserting inserted ID to ObjectID")
     }
 	id := objectId.Hex()
-	token,err := utils.GenerateAccessToken(id,account.Username)
+	fields := make(utils.EmailClaimsFields)
+	fields["userId"] = id
+	fields["username"]= account.Username
+	token,err := utils.GenerateToken(fields,"emailtoken")
 	if (err != nil){
 		return errorsHandle.CreateInternalServerErr(500,"Error asserting inserted ID to ObjectID")
 	}
@@ -36,7 +63,7 @@ func CreateAccount(accountDTO dto.Account) error {
 }
 
 func VerifyEmail(token string) error{
-	claims,err := utils.VerifyAccessToken(token)
+	claims,err := utils.VerifyToken(token,"emailtoken")
 	if(err != nil){
 		return errorsHandle.CreateUnAuthorizedErr(401,"Invalid token")
 	}
@@ -44,7 +71,7 @@ func VerifyEmail(token string) error{
 	if(isExpire){
 		return	errorsHandle.CreateUnAuthorizedErr(401,"Token expired")
 	}
-	account := repositories.FindAccountByUsername(claims.Username)
+	account := repositories.FindAccountByUsername(claims.GetUsername())
 	account.IsActive = true
 	repositories.UpdateAccount(account)
 	return nil

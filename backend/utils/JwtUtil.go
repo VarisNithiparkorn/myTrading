@@ -8,27 +8,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
-type Mytoken interface{
-	getUsername() string
-}
-type EmailTokenClaims struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	jwt.RegisteredClaims
-}
-func (t *EmailTokenClaims) getUsername() string{
-	return t.getUsername()
-}
-type EmailTokenClaimsFields map[string]string
 
-type AccessToken struct{
-	Username string `json:"username"`
-	Role string `json:"role"`
-}
-func (t *AccessToken) getUsername() string{
-	return t.getUsername()
-}
-type AcceessTokenClaimsFields map[string]string
+
+
+
+
 var signKey *rsa.PrivateKey
 var verifyKey *rsa.PublicKey
 
@@ -44,53 +28,76 @@ func init() {
 	fmt.Println("RSA Private Key loaded successfully.")
 }
 
-func generateClaim(tokenType string){
-	if(tokenType == "accesstoken"){
-
-	}else if tokenType == "refreshtoken" {
-		
-	}else if tokenType == "emailtoken"{
-		claims := &EmailTokenClaims{
-			UserID:   userID,
-			Username: username,
-			RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			Issuer:    "Bitkai_Auth_Service",
-		},
-		
+func generateClaim(tokenType string, field map[string]string) CustomClaims {
+    if tokenType == "accesstoken" {
+        return &AccessClaims{
+            Role: field["role"],
+            EmailClaims: EmailClaims{
+                UserID:   field["userId"],
+                Username: field["username"],
+                RegisteredClaims: jwt.RegisteredClaims{
+                    IssuedAt:  jwt.NewNumericDate(time.Now()),
+                    ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
+                    Issuer:    "Bitkai_Auth_Service",
+                }, 
+            }, 
+        } 
+    } else if tokenType == "refreshtoken" {
+        return &RefreshClaims{
+			AccessClaims: AccessClaims{
+				EmailClaims: EmailClaims{
+					UserID: field["userId"],
+					Username: field["username"],
+					RegisteredClaims: jwt.RegisteredClaims{
+					IssuedAt:  jwt.NewNumericDate(time.Now()),
+                    ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+                    Issuer:    "Bitkai_Auth_Service",
+					},
+				},
+			Role:field["role"] ,
+			},	
 		}
-	}
+    } else if tokenType == "emailtoken" {
+        return &EmailClaims{
+            UserID:   field["userId"],
+            Username: field["username"],
+            RegisteredClaims: jwt.RegisteredClaims{
+                IssuedAt:  jwt.NewNumericDate(time.Now()),
+                ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 60)),
+                Issuer:    "Bitkai_Auth_Service",
+            }, 
+        }
+    }
+    return nil 
 }
 
-func GenerateAccessToken(userID, username string, t time.Duration, tokenType string) (string, error) {
-	// Check if the key was loaded successfully
+func GenerateToken(fields map[string]string, tokenType string) (string, error) {
 	if signKey == nil {
 		return "", fmt.Errorf("RSA private key is not initialized")
 	}
-
-	expirationTime := time.Now().Add(t)
-
-
-
+	claims := generateClaim(tokenType,fields)
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {
 		return "", fmt.Errorf("could not sign the token with RSA: %w", err)
 	}
-
 	return tokenString, nil
 }
-func VerifyAccessToken(tokenString string) (*EmailTokenClaims, error) {
-	
+
+func VerifyToken(tokenString string, tokentype string) (CustomClaims, error) {
 	if verifyKey == nil {
 		return nil, fmt.Errorf("RSA public key is not initialized")
 	}
-
-	token, err := jwt.ParseWithClaims(
+	var claimType CustomClaims
+	if tokentype == "emailtoken"{
+		claimType = &EmailClaims{}
+	}else if tokentype == "accesstoken" {
+		claimType = &AccessClaims{}
+	}else if tokentype == "refreshtoken"{
+	}
+	_, err := jwt.ParseWithClaims(
 		tokenString,
-		&EmailTokenClaims{},
+		claimType,
 		func(token *jwt.Token) (interface{}, error) {
 			
 			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -100,38 +107,27 @@ func VerifyAccessToken(tokenString string) (*EmailTokenClaims, error) {
 			return verifyKey, nil
 		},
 	)
-
-	
 	if err != nil {
 		return nil, fmt.Errorf("token parsing/signature error: %w", err)
 	}
-
-	
-	claims, ok := token.Claims.(*EmailTokenClaims)
-	if !ok || !token.Valid {
-		
-		return nil, fmt.Errorf("invalid or expired token claims")
+	iss,err2 := claimType.GetIssuer();
+    if  err2 != nil{
+		fmt.Errorf("can't get issuer")
 	}
-    
-    
-    if claims.Issuer != "Bitkai_Auth_Service" {
+    if  iss != "Bitkai_Auth_Service" {
         return nil, fmt.Errorf("token issuer is invalid")
     }
-
-	
-	return claims, nil
+	return claimType, nil
 }
 
-func IsExpired(claims jwt.Claims) bool{
+func IsExpired(claims CustomClaims) bool{
 	expireTime, ex :=claims.GetIssuedAt()
 	createTime, ec := claims.GetIssuedAt()
-
 	if(ex != nil){
 		fmt.Errorf("invalid date %w",ex)
 	}
 	if(ec != nil){
 		fmt.Errorf("invalid date %w",ec)
 	}
-	
 	return createTime.Time.After(expireTime.Time)
 }
