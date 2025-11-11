@@ -27,7 +27,6 @@ func Login(account *dto.Account) (t *string,e error){
 	fields["username"] = existedAccount.Username
 	fields["role"] = existedAccount.Role
 	token,err := utils.GenerateToken(fields,"accesstoken")
-	
 	if err!=nil {
 		return nil,err
 	}
